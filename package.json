@@ -1,0 +1,19 @@
+{
+  "name": "proserver",
+  "version": "1.0.0",
+  "main": "proserver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-fileupload": "^1.5.1",
+    "mysql2": "^3.10.3",
+    "nodemailer": "^6.9.14",
+    "nodemon": "^3.1.4"
+  },
+  "description": ""
+}
