@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>infl dash</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+
+    <script>
+      $(document).ready(function(){
+        let active=localStorage.getItem("activeuser");
+        //alert(active);
+        $("#dash").html("<b>Welcome:</b>&nbsp&nbsp"+active);
+        
+      $("#emailid").val(active).prop("readonly",true);
+      $("#setemail").val(active).prop("readonly",true);
+
+          $("#postevent").click(function(){
+              let obj={
+                  type:"get",
+                  url:"/check-post-events",
+                  data:{
+                      emailid:$("#emailid").val(),
+                      events:$("#events").val(),
+                      doe:$("#doe").val(),
+                      tos:$("#tos").val(),
+                      city:$("#city").val(),
+                      venue:$("#venue").val(),
+                      //myEmail:$("#txtEmail").val()
+                  }
+              }
+              //$.ajax(obj).done(function(resp){}).fail(function(err){})
+              $.ajax(obj).done(function(resp)
+                  {
+                      alert(resp);
+                      alert("done!");
+                      
+  
+                  }).fail(function(err)
+                  {
+                      alert(err.statusText);
+                  })
+          })
+
+
+
+
+          $("#update").click(function(){
+              let obj={
+                  type:"get",
+                  url:"/change-password",
+                  data:{
+                      setemail:$("#setemail").val(),
+                      oldpwd:$("#oldpwd").val(),
+                      newpwd:$("#newpwd").val(),
+                      reppwd:$("#reppwd").val(),
+                      
+                      //myEmail:$("#txtEmail").val()
+                  }
+              }
+              //$.ajax(obj).done(function(resp){}).fail(function(err){})
+              $.ajax(obj).done(function(resp)
+                  {
+                      alert(resp);
+                      //alert("done!");
+                      
+  
+                  }).fail(function(err)
+                  {
+                      alert(err.statusText);
+                  })
+          });
+          $("#logout").click(function(){
+                localStorage.removeItem("activeuser");
+                location.href="index2.html";
+                })
+
+
+          
+          
+      })
+  </script>
+  <style>#logo{
+    background-image: url(/pics/handshake.jpg);
+    width: 40px; margin-top: 6px;
+    background-size: contain;
+    height: 40px; margin-left: 20px;float: left;
+    border-radius: 50%;
+    border: black solid;
+}</style>
+
+
+
+
+
+
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg bg-body-tertiary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index2.html">
+        <img src="pics/handshake.jpg" alt="" width="40" height="40" class="d-inline-block align-text-top">
+      </a>
+<a class="navbar-brand" href="index2.html"><b>Promo.com</b></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                  <div class="col-md-11"> </div>
+                      
+                    <button type="button" class="btn btn-outline-danger" class="ms-auto" data-bs-toggle="modal" data-bs-target="#modalLogin" id="logout">Log Out</button>
+                    
+                    
+                    
+                    
+                </div>
+                
+                </div>
+            </nav>
+
+            <!-- #region ///////////////////////////////////////////////////////-
+
+            <nav class="navbar navbar-expand-lg bg-body-tertiary">
+              <div class="container-fluid">
+                <a class="navbar-brand" href="#">Navbar</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                  
+                  <form class="d-flex" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                  </form>
+                </div>
+              </div>
+            </nav>
+            
+             ///////////////////////////////////////////////////////-->
+      <div class="container">
+        <div class="row">
+          <div class="col-md-12 " > <center><h2>Influencer Dashboard</h2></center></div>
+        </div>
+        <p><center><span id="dash"></span></center></p>
+        <div class="row">
+          
+            <div class="col-md-3">
+              
+                <div   class="card" >
+                    <img src="pics/profile.png" class="card-img-top" alt="...">
+                    <div class="card-body">
+                    
+                      <center><a href="inf-Profile" target="_blank" class="btn btn-primary"><b>Profile</b></a></center>
+                      
+
+                    </div>
+                </div>
+              </div>
+
+              <div class="col-md-3">
+                <div  class="card" >
+                  <img src="pics/bookings.png" class="card-img-top" alt="...">
+                  <div class="card-body">
+                  
+                    <center><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                      <b>Bookings</b>
+                    </button></center>
+                    
+
+
+                  </div>
+              </div>
+            </div>
+
+              <div class="col-md-3">
+              <div  class="card" >
+                <img src="pics/newset.jpg" class="card-img-top" alt="...">
+                <div class="card-body">
+                
+                  <center><button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                    <b>Settings</b>
+                  </button></center>
+              
+                </div>
+            </div>
+          </div>
+
+
+           
+
+          <div class="col-md-3">
+          <div   class="card" >
+            <img src="pics/emanage.jpg" class="card-img-top" height="50%" width="50%" alt="...">
+            <div class="card-body">
+            
+              <center><a href="events-manager" target="_blank" class="btn btn-primary"><b>Events</b></a></center>
+
+
+            </div>
+        </div>
+      </div>
+
+
+
+        </div>
+      </div>
+
+
+
+
+  
+
+
+<!--Booking Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Booked Events/Dates</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        
+        <form>
+          <div class="mb-3">
+            <label for="exampleInputEmail1" class="form-label">Email ID</label>
+            <input type="email" class="form-control" id="emailid" name="emailid" aria-describedby="emailHelp">
+           
+          </div>
+
+          <div class="mb-3">
+            <label for="events" class="form-label">Event Title</label>
+            <input type="text" class="form-control" id="events" name="events">
+          </div>
+<p>
+          <div class="row">
+                    <div  class="col" class="form-control">
+                      <label for="doe" class="form-label">Date</label>
+                      <input type="date" class="form-control" id="doe" name="doe">
+                    </div>
+
+                    <div  class="col" class="form-control">
+                      <label for="tos" class="form-label">Start Time</label>
+                      <input type="time" class="form-control" id="tos" name="tos">
+                    </div>
+            </div>
+          </p>
+            <div class="row">
+
+                    <div class="col" class="form-control">
+                      <label for="city" class="form-label">City/Place</label>
+                      <input type="text" class="form-control" id="city" name="city">
+                    </div>
+
+                    <div class="col" class="form-control">
+                      <label for="venue" class="form-label">Venue</label>
+                      <input type="text" class="form-control" id="venue" name="venue">
+                    </div>
+
+                  </div>
+          
+          
+        </form>
+
+
+      </div>
+      <div class="modal-footer">
+        
+        <button type="button" class="btn btn-primary" id="postevent">Post Event</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+<!--Settings Modal -->
+<div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="settingsModalLabel">Settings</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+
+        <form>
+          <div class="mb-3">
+            <label for="settingsInputEmail1" class="form-label">Email ID</label>
+            <input type="email" class="form-control" id="setemail" name="setemail" aria-describedby="emailHelp">
+            
+          </div>
+          <div class="mb-3">
+            <label for="settingsInputPassword1" class="form-label">Old Password</label>
+            <input type="password" class="form-control" id="oldpwd" name="oldpwd">
+          </div>
+
+          <div class="mb-3">
+            <label for="settingsInputPassword1" class="form-label">New Password</label>
+            <input type="password" class="form-control" id="newpwd" name="newpwd">
+          </div>
+
+          <div class="mb-3">
+            <label for="settingsInputPassword1" class="form-label">Repeat Password</label>
+            <input type="password" class="form-control" id="reppwd" name="reppwd">
+          </div>
+          
+          
+        </form>
+
+
+
+      </div>
+      <div class="modal-footer">
+        
+        <button type="button" class="btn btn-primary" id="update">Update</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+</body>
+</html>

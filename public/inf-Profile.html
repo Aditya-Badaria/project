@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Infl Profile</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
+    <script>
+        function doPrev(fileCtrl,imgPrev)
+        {
+            let [file] = fileCtrl.files
+            if (file) {
+                imgPrev.src = URL.createObjectURL(file)
+            }
+        }
+    </script>
+
+
+<script>
+    $(document).ready(function(){
+      let active=localStorage.getItem("activeuser");
+      $("#emailid").val(active).prop("readonly",true);
+        $("#txtEmail").blur(function(){
+            let obj={
+                type:"get",
+                url:"/check-user-existance",
+                data:{
+                    txtEmail:$("#txtEmail").val()
+                    //myEmail:$("#txtEmail").val()
+                }
+            }
+            //$.ajax(obj).done(function(resp){}).fail(function(err){})
+            $.ajax(obj).done(function(resp)
+                {
+                    alert(resp)
+                    
+
+                }).fail(function(err)
+                {
+                    alert(err.statusText);
+                })
+        })
+
+    
+
+        $("#btnSearch").click(function(){
+/////////////////////////////////////////////////////////////////////////////////
+
+                          let obj1 = {
+                        type: 'post',
+                        url: '/check-sub',
+                        data: {
+                          txtEmail: localStorage.getItem("activeuser")
+                        }
+                    }
+                    // alert()
+                    $.ajax(obj1).done(function(result) {
+                    if (result.length == '') {
+                        //alert("User does not exist. Save enabled, Update disabled.");
+                        //$("#sav").css("display", "block");
+                        $("#upd").css("display", "none");
+                    } else {
+                        //alert("User exists. Save disabled, Update enabled.");
+                        $("#sav").css("display", "none");
+                        //$("#upd").css("display", "block");
+                    }
+                });
+
+                      
+/////////////////////////////////////////////////////////////////////////////////////////
+                    let obj={
+                        type:"get",
+                        url:"/find-user-details",
+                        data:{
+                            emailid:$("#emailid").val()
+                        }
+                    }
+                    $.ajax(obj).done(function(jsonAry)
+                    {
+                        if(jsonAry.length==0)
+                        {
+                            alert("Enter your details");
+                            return;
+                        }
+                        //alert("hii");
+                        //alert(JSON.stringify(jsonAry));
+                        //alert(jsonAry);
+                        $("#emailid").val(jsonAry[0].emailid);//table colu. wala
+                        $("#uname").val(jsonAry[0].name);//table colu. wala
+                        $("#gender").val(jsonAry[0].gender);
+                        $("#dob").val(jsonAry[0].dob.split("T")[0]);
+                        // alert(jsonAry[0].dob);
+                        $("#address").val(jsonAry[0].address);
+                        $("#city").val(jsonAry[0].city);
+                        $("#contact").val(jsonAry[0].contact);
+                        $("#fields").val(jsonAry[0].fields.split(","));
+                        $("#insta").val(jsonAry[0].insta);
+                        $("#fb").val(jsonAry[0].fb);
+                        $("#yt").val(jsonAry[0].yt);
+                        $("#other").val(jsonAry[0].other);
+                        $("#prev").prop("src",jsonAry[0].picpath);
+                        $("#hdn").val(jsonAry[0].picpath);
+                                    //alert($("#hdn").val())
+                          
+
+                    }).fail(function(err)
+                    {
+                        alert(err.statusText);
+                    })
+
+                });
+                $("#logout").click(function(){
+                localStorage.removeItem("activeuser");
+                location.href="index2.html";
+                })
+
+                
+                
+        
+    })
+</script>
+
+<style>
+#logo{
+  background-image: url(/pics/handshake.jpg);
+  width: 40px; margin-top: 6px;
+  background-size: contain;
+  height: 40px; margin-left: 20px;float: left;
+  border-radius: 50%;
+  border: black solid;
+}
+  
+  textarea#other {
+            resize: none; 
+            width: 300px;
+            max-width: 100%;
+            height: 150px; 
+            max-height: 150px; 
+        }
+        </style>
+
+
+</head>
+<body>
+      <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <div class="container-fluid">
+          <a class="navbar-brand" href="index2.html">
+            <img src="pics/handshake.jpg" alt="" width="40" height="40" class="d-inline-block align-text-top">
+          </a>
+      <a class="navbar-brand" href="index2.html"><b>Promo.com</b></a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                  <div class="col-md-11"> </div>
+                      
+                    <button type="button" class="btn btn-outline-danger" class="ms-auto" data-bs-toggle="modal" data-bs-target="#modalLogin" id="logout">Log Out</button>
+                    
+                    
+                    
+                    
+                </div>
+                
+                </div>
+            </nav>
+    
+        <div class="container">
+          <div class="row">
+            <div class="col-md-12"></div>
+          </div>
+          <div class="row">
+            <div class="col"><center><h2>Profile</h2></center></div>
+          </div>
+                  <form  enctype="multipart/form-data" method="post">
+                    <input type="hidden" name="hdn" id="hdn">
+                        <div class="row">
+                                <div class="col-md-12">
+                                  <label for="inputEmail4"  class="form-label">Email</label>
+                                </div>
+                                <div class="col-md-6">
+                                  <input type="email"  class="form-control" id="emailid" name="emailid">
+                                </div>
+                                <div class="col-md-2">
+                                  
+                                  <button type="button" float="left" class="btn btn-primary" id="btnSearch">Search</button>
+                                  
+                                
+                                </div>
+                                
+
+                                <div class="col-md-4">
+                                  <img src="" id="prev" alt="" float="left"  width="70" height="70"><br>
+                                  <b>Profile Pic</b> <input  type="file" name="ppic" id="ppic" onchange="doPrev(this,prev);" >
+                                </div>
+                            
+                              </div>
+<p>
+                              <div class="row">
+                                <div class="col-md-4">
+                                  <label for="Name" class="form-label">Name</label>
+                                  <input type="text" class="form-control" id="uname" name="uname" required>
+                                </div>
+
+
+                                
+
+
+                                  <div class="col-md-4">
+                                    <label for="DOB" class="form-label">DOB</label>
+                                    <input type="date"  class="form-control" id="dob" name="dob" required>
+                                    
+                                  </div>
+
+                                  <div class="col-md-4">
+                                     <!-- #region <label for="Gender" class="form-label">Gender</label>
+                                    <input type="text" float="left" class="form-control" id="Gender" >-->
+
+                                    <!-- #region<label for="inputState"  class="form-label">Gender</label><br>
+                                            <select id="inputState"  class="form-select">
+                                              <option selected>Choose...</option>
+                                              <option>Male</option>
+                                              <option>Female</option>
+                                              <option>Others</option>-->
+                                              <label for="Gender" class="form-label">Gender</label>
+                                              <select class="form-select" id="gender" name="gender" required>
+                                                <option selected disabled>Choose...</option>
+                                                <option value="male">Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="others">Others</option>
+                                              </select>         
+                                              
+                                  </div>
+                                </div>
+                              </p>
+<p>
+                                <div class="row">
+                                  <div class="col-4">
+                                    <label for="inputAddress" class="form-label">Address</label>
+                                    <input type="text" class="form-control" id="address" name="address" required>
+                                  </div>
+
+                                  <div class="col-4">
+                                    <label for="City" class="form-label">City</label>
+                                    <input type="text" class="form-control" id="city" name="city" required>
+                                  </div>
+
+
+                                  <div class="col-4">
+                                    <label for="ContactNo" class="form-label">Contact no</label>
+                                    <input type="text" class="form-control" id="contact" name="contact" required>
+                                  </div>
+
+                                </div>
+                              </p>
+<p>
+                                <div class="row">
+                                          <div class="col-md-3">
+                                            <label for="fields" class="form-label">Field</label><br>
+                                            <select id="fields" name="fields" multiple class="form-select" required>
+                                              <option selected disabled>Choose...</option>
+                                              <option>Fashion</option>
+                                              <option>Fitness</option>
+                                              <option>Sports</option>
+                                              <option>Coding</option>
+                                              <option>Education</option>
+                                              <option>Singing</option>
+                                              <option>Meditation</option>
+                                            </select>
+                                          </div>
+
+
+                                          <div class="col-3">
+                                              <label for="Insta" class="form-label">Instagram</label>
+                                              <input type="text" class="form-control" id="insta" name="insta" required>
+                                            </div>
+
+                                            <div class="col-3">
+                                              <label for="fb" class="form-label">Facebook</label>
+                                              <input type="text" class="form-control" id="fb" name="fb" required>
+                                            </div>
+
+                                            <div class="col-3">
+                                              <label for="yt" class="form-label">Youtube</label>
+                                              <input type="text" class="form-control" id="yt"  name="yt" required>
+                                            </div>
+                                </div>
+                              </p>
+
+                                
+                                <div class="row">
+                                  <div class="col-md-12">
+                                   <center> Other Info: <br>
+                                    <textarea name="other" id="other"   ></textarea>
+                                  </center>
+                                  </div>
+                                </div>
+
+                               <div class="row">
+                                <div class="col-md-12">
+                                  <center>
+                                    <button type="submit" class="btn btn-primary" id="sav" formaction="/infl-profile-save">Save</button>
+                                    <button type="submit" class="btn btn-primary" id="upd" formaction="/infl-profile-update">Update</button>
+                                  </center>
+                                </div>
+                              </div> 
+                  </form>
+              </div>
+     
+      
+<!--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@-->
+
+
+
+
+    
+</body>
+</html>
