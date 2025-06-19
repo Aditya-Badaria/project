@@ -15,11 +15,41 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(fileuploader({
-    limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
+    limits: { fileSize: 50 * 1024 * 1024 },
     abortOnLimit: true
 }));
 
-const dbConfig = process.env.DB_CONNECTION || "mysql://root@127.0.0.1:3306/project";
+// Database Configuration
+const dbConfig = {
+  host: process.env.DB_HOST || "127.0.0.1",
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "admin123b@dera",
+  database: process.env.DB_NAME || "project",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 10000
+};
+
+// Create connection pool
+const pool = mysql2.createPool(dbConfig);
+
+// Test connection
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error("❌ Database connection failed:", err.message);
+    process.exit(1);
+  }
+  console.log("✅ Connected to database successfully");
+  connection.release();
+});
+
+// Handle pool errors
+pool.on('error', (err) => {
+  console.error('Database pool error:', err);
+});
 
 // Cloudinary Configuration
 cloudinary.config({ 
@@ -27,33 +57,6 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY, 
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
-
-// Database Connection
-const mysql = mysql2.createConnection(dbConfig);
-
-mysql.connect((err) => {
-    if (err) {
-        console.error("Database connection failed:", err.message);
-        process.exit(1);
-    } else {
-        console.log("Connected to database successfully");
-    }
-});
-
-// Handle connection errors
-mysql.on('error', (err) => {
-    console.error('Database error:', err);
-    if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-        console.log('Attempting to reconnect...');
-        mysql.connect();
-    }
-});
-
-// Helper Functions
-const handleDatabaseError = (err, res, customMessage = "Database error occurred") => {
-    console.error("Database error:", err);
-    res.status(500).send(customMessage);
-};
 
 const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -97,7 +100,7 @@ app.get("/signup-process", (req, res) => {
     }
 
     const query = "INSERT INTO users VALUES(?,?,?,?)";
-    mysql.query(query, [sanitizeInput(txtemail), sanitizeInput(txtpwd), sanitizeInput(utype), 1], (err) => {
+    pool.query(query, [sanitizeInput(txtemail), sanitizeInput(txtpwd), sanitizeInput(utype), 1], (err) => {
         if (err) {
             if (err.code === 'ER_DUP_ENTRY') {
                 res.send("<i>Already signed up</i>");
@@ -122,7 +125,7 @@ app.get("/login-process", (req, res) => {
     }
 
     const query = "SELECT * FROM users WHERE email=? AND pwd=?";
-    mysql.query(query, [sanitizeInput(txtemaill), sanitizeInput(txtpwdd)], (err, result) => {
+    pool.query(query, [sanitizeInput(txtemaill), sanitizeInput(txtpwdd)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Login failed");
         }
@@ -157,7 +160,7 @@ app.get("/change-password", (req, res) => {
 
     // Verify old password first
     const verifyQuery = "SELECT * FROM users WHERE pwd=? AND email=?";
-    mysql.query(verifyQuery, [sanitizeInput(oldpwd), sanitizeInput(setemail)], (err, result) => {
+    pool.query(verifyQuery, [sanitizeInput(oldpwd), sanitizeInput(setemail)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Password verification failed");
         }
@@ -168,7 +171,7 @@ app.get("/change-password", (req, res) => {
 
         // Update password
         const updateQuery = "UPDATE users SET pwd=? WHERE email=?";
-        mysql.query(updateQuery, [sanitizeInput(newpwd), sanitizeInput(setemail)], (err) => {
+        pool.query(updateQuery, [sanitizeInput(newpwd), sanitizeInput(setemail)], (err) => {
             if (err) {
                 return handleDatabaseError(err, res, "Password update failed");
             }
@@ -185,7 +188,7 @@ app.get("/forgot-pwd", (req, res) => {
     }
 
     const query = "SELECT pwd FROM users WHERE email=?";
-    mysql.query(query, [sanitizeInput(txtemaill)], (err, result) => {
+    pool.query(query, [sanitizeInput(txtemaill)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Password retrieval failed");
         }
@@ -264,7 +267,7 @@ app.post("/infl-profile-save", async (req, res) => {
             sanitizeInput(other), fileName
         ];
 
-        mysql.query(query, values, (err) => {
+        pool.query(query, values, (err) => {
             if (err) {
                 return handleDatabaseError(err, res, "Profile save failed");
             }
@@ -309,7 +312,7 @@ app.post("/infl-profile-update", async (req, res) => {
             sanitizeInput(other), fileName, sanitizeInput(emailid)
         ];
 
-        mysql.query(query, values, (err, result) => {
+        pool.query(query, values, (err, result) => {
             if (err) {
                 return handleDatabaseError(err, res, "Profile update failed");
             }
@@ -335,7 +338,7 @@ app.get("/find-user-details", (req, res) => {
     }
 
     const query = "SELECT * FROM iprofile WHERE emailid=?";
-    mysql.query(query, [sanitizeInput(emailid)], (err, result) => {
+    pool.query(query, [sanitizeInput(emailid)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "User details retrieval failed");
         }
@@ -351,7 +354,7 @@ app.get("/find-client-details", (req, res) => {
     }
 
     const query = "SELECT * FROM cprofile WHERE email=?";
-    mysql.query(query, [sanitizeInput(email)], (err, result) => {
+    pool.query(query, [sanitizeInput(email)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Client details retrieval failed");
         }
@@ -368,7 +371,7 @@ app.get("/find-influ", (req, res) => {
     }
 
     const query = "SELECT * FROM iprofile WHERE fields LIKE ?";
-    mysql.query(query, [`%${sanitizeInput(fields)}%`], (err, result) => {
+    pool.query(query, [`%${sanitizeInput(fields)}%`], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Influencer search failed");
         }
@@ -384,7 +387,7 @@ app.get("/do-find", (req, res) => {
     }
 
     const query = "SELECT * FROM iprofile WHERE fields LIKE ? AND city = ?";
-    mysql.query(query, [`%${sanitizeInput(fields)}%`, sanitizeInput(city)], (err, result) => {
+    pool.query(query, [`%${sanitizeInput(fields)}%`, sanitizeInput(city)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Influencer search failed");
         }
@@ -400,7 +403,7 @@ app.get("/do-findbyname", (req, res) => {
     }
 
     const query = "SELECT * FROM iprofile WHERE name LIKE ?";
-    mysql.query(query, [`%${sanitizeInput(pname)}%`], (err, result) => {
+    pool.query(query, [`%${sanitizeInput(pname)}%`], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Name search failed");
         }
@@ -416,7 +419,7 @@ app.get("/fetch-suggestions", (req, res) => {
     }
 
     const query = "SELECT name FROM iprofile WHERE name LIKE ? LIMIT 10";
-    mysql.query(query, [`%${sanitizeInput(search)}%`], (err, results) => {
+    pool.query(query, [`%${sanitizeInput(search)}%`], (err, results) => {
         if (err) {
             return handleDatabaseError(err, res, "Suggestions fetch failed");
         }
@@ -427,7 +430,7 @@ app.get("/fetch-suggestions", (req, res) => {
 // Admin Routes
 app.get("/fetch-all", (req, res) => {
     const query = "SELECT email, utype, status FROM users";
-    mysql.query(query, (err, result) => {
+    pool.query(query, (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Users fetch failed");
         }
@@ -437,7 +440,7 @@ app.get("/fetch-all", (req, res) => {
 
 app.get("/fetch-all-influ", (req, res) => {
     const query = "SELECT * FROM iprofile";
-    mysql.query(query, (err, result) => {
+    pool.query(query, (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Influencers fetch failed");
         }
@@ -454,7 +457,7 @@ app.get("/del-one", (req, res) => {
     }
 
     const query = "DELETE FROM users WHERE email=?";
-    mysql.query(query, [sanitizeInput(email)], (err) => {
+    pool.query(query, [sanitizeInput(email)], (err) => {
         if (err) {
             return handleDatabaseError(err, res, "User deletion failed");
         }
@@ -470,7 +473,7 @@ app.get("/block-one", (req, res) => {
     }
 
     const query = "UPDATE users SET status=0 WHERE email=?";
-    mysql.query(query, [sanitizeInput(email)], (err) => {
+    pool.query(query, [sanitizeInput(email)], (err) => {
         if (err) {
             return handleDatabaseError(err, res, "User blocking failed");
         }
@@ -486,7 +489,7 @@ app.get("/resume-one", (req, res) => {
     }
 
     const query = "UPDATE users SET status=1 WHERE email=?";
-    mysql.query(query, [sanitizeInput(email)], (err) => {
+    pool.query(query, [sanitizeInput(email)], (err) => {
         if (err) {
             return handleDatabaseError(err, res, "User resuming failed");
         }
@@ -508,7 +511,7 @@ app.get("/check-post-events", (req, res) => {
         sanitizeInput(tos), sanitizeInput(city), sanitizeInput(venue)
     ];
 
-    mysql.query(query, values, (err, result) => {
+    pool.query(query, values, (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Event creation failed");
         }
@@ -518,7 +521,7 @@ app.get("/check-post-events", (req, res) => {
 
 app.get("/get-all-events", (req, res) => {
     const query = "SELECT * FROM events WHERE doe >= CURRENT_DATE()";
-    mysql.query(query, (err, result) => {
+    pool.query(query, (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Events fetch failed");
         }
@@ -534,7 +537,7 @@ app.get("/del-pls", (req, res) => {
     }
 
     const query = "DELETE FROM events WHERE emailid=?";
-    mysql.query(query, [sanitizeInput(emailid)], (err) => {
+    pool.query(query, [sanitizeInput(emailid)], (err) => {
         if (err) {
             return handleDatabaseError(err, res, "Event deletion failed");
         }
@@ -560,7 +563,7 @@ app.post("/client-profile-save", (req, res) => {
         sanitizeInput(state), sanitizeInput(org), sanitizeInput(mobile)
     ];
 
-    mysql.query(query, values, (err) => {
+    pool.query(query, values, (err) => {
         if (err) {
             return handleDatabaseError(err, res, "Client profile save failed");
         }
@@ -581,7 +584,7 @@ app.post("/client-profile-modify", (req, res) => {
         sanitizeInput(org), sanitizeInput(mobile), sanitizeInput(email)
     ];
 
-    mysql.query(query, values, (err, result) => {
+    pool.query(query, values, (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Client profile update failed");
         }
@@ -602,7 +605,7 @@ app.post("/check-sub", (req, res) => {
     }
 
     const query = "SELECT * FROM iprofile WHERE emailid=?";
-    mysql.query(query, [sanitizeInput(txtEmail)], (err, result) => {
+    pool.query(query, [sanitizeInput(txtEmail)], (err, result) => {
         if (err) {
             return handleDatabaseError(err, res, "Subscription check failed");
         }
@@ -650,6 +653,14 @@ app.use((err, req, res, next) => {
 // 404 Handler
 app.use((req, res) => {
     res.status(404).send("Page not found");
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  pool.end(() => {
+    console.log('Database pool closed');
+    process.exit(0);
+  });
 });
 
 // Server Start
